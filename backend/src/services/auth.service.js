@@ -36,8 +36,9 @@ class AuthService {
   }
 
   async login({ email, password }) {
+    const normalizedEmail = (email || '').toLowerCase().trim();
     const user = await User.findOne({
-      where: { email },
+      where: { email: normalizedEmail },
       include: [
         {
           model: Store,

@@ -8,6 +8,9 @@ const ApiError = require('./utils/apiError');
 
 const app = express();
 
+// Trust reverse proxy (required on Render, Heroku, etc.)
+app.set('trust proxy', 1);
+
 // Security headers
 app.use(helmet());
 
@@ -23,7 +26,7 @@ app.use(
   cors({
     origin: (origin, callback) => {
       // allow requests with no origin (like mobile apps or curl)
-      if (!origin || allowedOrigins.includes(origin)) {
+      if (!origin || allowedOrigins.includes(origin) || allowedOrigins.includes('*')) {
         return callback(null, true);
       }
       return callback(null, true); // Dev-friendly fallback
@@ -34,7 +37,7 @@ app.use(
   })
 );
 
-// Rate Limiter: 100 requests per 15 minutes per IP
+// Rate Limiter: 300 requests per 15 minutes per IP
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 300,
@@ -45,6 +48,7 @@ const limiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
+  validate: { xForwardedForHeader: false },
 });
 app.use('/api', limiter);
 
